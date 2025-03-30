@@ -9,7 +9,7 @@ def run(port: int):
         print(f"Connected to LRU Cache server at {HOST}:{port}")
 
         while True:
-            command = input("Enter command (PUT key value / GET key / EXIT): ")
+            command = input("Enter command (PUT key value [ttl] / GET key / CLN / EXIT): ")
             if command.lower() == 'exit':
                 break
 

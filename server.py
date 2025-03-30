@@ -16,20 +16,31 @@ def handle_client(conn, addr, cache):
                     break
 
                 try:
-                    command, key, *value = data.split()
-                    key = int(key)
+                    params = data.split()
+                    command = params[0]
 
                     if command.lower() == 'put':
-                        value = value[0] if value else ""
-                        cache.put(key, value)
+                        key, *additional_args = params[1:]
+                        key = int(key)
+
+                        value = additional_args[0] if additional_args else ""
+                        ttl = int(additional_args[1]) if len(additional_args) > 1 else None
+
+                        cache.put(key, value, ttl)
                         response = f"Put: {key} -> {value}"
                     elif command.lower() == 'get':
+                        key = int(params[1])
+
                         result = cache.get(key)
                         response = f"Get: {key} -> {result}"
+                    elif command.lower() == 'cln':
+                        cache.cleanup()
+                        response = f"Cleanup"
                     else:
                         response = f"Unknown command: {command}"
-                except ValueError:
-                    response = "Invalid input format. Use 'PUT key value' or 'GET key'"
+                except ValueError as e:
+                    print(e)
+                    response = "Invalid input format. Use 'PUT key value [ttl]' or 'GET key' or 'CLN'"
 
                 conn.sendall(response.encode('utf-8'))
         except Exception as e:

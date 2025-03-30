@@ -1,3 +1,5 @@
+import time
+
 from lfu import LFUCache
 from lru import LRUCache
 
@@ -78,3 +80,23 @@ if __name__ == "__main__":
 
     assert cache.get(1) == 'B'
     assert cache.get(2) == 'C'
+
+    print("Test LruCache expiration")
+    cache = LRUCache(2)
+
+    cache.put(1, 'A')
+    cache.put(2, 'B', 1)
+
+    time.sleep(2)
+
+    cache.cleanup()
+
+    assert cache.get(1) == 'A'
+    assert cache.get(2) == -1
+
+    cache.put(2, 'B')
+    assert cache.get(2) == 'B'
+
+
+
+

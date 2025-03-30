@@ -1,11 +1,18 @@
+import time
 from typing import Self
 from typing import Optional
 from threading import Lock
 
 class Node:
-    def __init__(self, key: Optional[int] = None, value: Optional[str] = None):
+    def __init__(
+        self,
+        key: Optional[int] = None,
+        value: Optional[str] = None,
+        expiration: Optional[int] = None,
+    ):
         self._key = key
         self._value = value
+        self._expiration = expiration
         self._prev = None
         self._next = None
 
@@ -32,6 +39,10 @@ class Node:
     @property
     def value(self):
         return self._value
+
+    @property
+    def expiration(self):
+        return self._expiration
 
 class LRUCache:
     def __init__(self, capacity: int):
@@ -66,7 +77,7 @@ class LRUCache:
         node.prev.next = node.next
         node.next.prev = node.prev
 
-    def put(self, key: int, value: str):
+    def put(self, key: int, value: str, ttl: Optional[int] = None):
         with self._lock:
             if key in self._data:
                 node = self._data[key]
@@ -82,7 +93,11 @@ class LRUCache:
 
                 self._curr_size -= 1
 
-            new_node = Node(key, value)
+            expiration = None
+            if ttl:
+                expiration = int(time.time()) + ttl
+
+            new_node = Node(key, value, expiration)
             self.insert_latest(new_node)
             self._data[key] = new_node
 
@@ -98,3 +113,15 @@ class LRUCache:
             self.insert_latest(node)
 
             return node.value
+
+    def cleanup(self):
+        n = self._head.next
+        cleanup_time = int(time.time())
+
+        while n != self._tail:
+            next_node = n.next
+            if n.expiration and n.expiration <= cleanup_time:
+                self.remove_node(n)
+                del self._data[n.key]
+
+            n = next_node
