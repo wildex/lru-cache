@@ -12,3 +12,7 @@ Running:
 There is also attempt to implement LFU cache, located in lfu.py
 
 test.py includes some basic test cases using standard assertions
+
+### Example cleanup using CRON
+
+`* * * * * cd ~/Projects/lru-cache && source .venv/bin/activate && python client.py 65432 -c 'CLN'`
